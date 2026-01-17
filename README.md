@@ -48,3 +48,18 @@ curl -X POST http://localhost:8000/chat
 
 -H "Content-Type: application/json"
 -d '{"message":"Hello"}'
+
+---
+
+## Frontend (Task 1)
+
+A minimal web-based UI is included to interact with the `/chat` API.
+
+- Users can enter a message and send it to the backend
+- The conversation history is displayed on the screen
+- The UI communicates with the backend using HTTP POST requests
+
+To use the UI:
+1. Start the backend server (`node server.js`)
+2. Open `index.html` in a browser
+
