@@ -11,7 +11,7 @@ conversational-interface/
 └── README.md # Project documentation
 
 Make sure you have the following installed:
-- Node.js (v16 or later)
+- Node.js (v16 or later):Download and install from [nodejs.org](https://nodejs.org/) and run the setup.
 - npm (comes with Node.js)
 ``` 
 # Installation 
