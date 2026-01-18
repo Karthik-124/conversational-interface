@@ -62,7 +62,7 @@ curl -X POST http://localhost:8000/chat
 
 ---
 
-## Frontend (Task 1)
+## Frontend 
 
 A minimal web-based UI is included to interact with the `/chat` API.
 
