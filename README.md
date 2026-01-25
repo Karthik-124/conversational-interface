@@ -1,20 +1,26 @@
 # conversational-interface 
-This contains the initial express backend setup.
+This contains the client and server for conversational-interface.
 
 # Directory Structure
 ```text
 conversational-interface/
-├── client/
-│   └── index.html       # Frontend UI
-└── server/
-    ├── server.js        # Express logic
-    ├── package.json     
-    ├── package-lock.json
-    └── README.md        # Documentation
-
+├── client/                 
+│   └── index.html
+├── python-server/          # New Python Backend
+│   ├── .venv/              
+│   └── app.py              # Flask Server Logic
+├── server/                 # Node.js Backend
+│   ├── node_modules/       
+│   ├── package.json
+│   └── server.js
+├── .gitignore              # Git Ignore 
+└── README.md               # Main Project Documentation
+   ``` 
+```
 Make sure you have the following installed:
 - Node.js (v16 or later):Download and install from [nodejs.org](https://nodejs.org/) and run the setup.
 - npm (comes with Node.js)
+- Python and pip
 ``` 
 # Installation 
 1.Clone the repository
@@ -23,7 +29,14 @@ Make sure you have the following installed:
 2.Install dependencies
  -npm install
 
- # Running
+3.Python Backend Setup
+Create and activate a virtual environment (venv) to isolate dependencies.
+
+Install Flask and Flask-CORS: pip install flask flask-cors.
+
+Run the server: python app.py (Default port: 5000).
+
+# Running 
  Start the server using - node server.js
  The server runs on port 8000.
 
@@ -72,5 +85,6 @@ A minimal web-based UI is included to interact with the `/chat` API.
 
 To use the UI:
 1. Start the backend server (`node server.js`)
+or Start the backend server(Python) (`flask run`)
 2. Open `index.html` in a browser
 
