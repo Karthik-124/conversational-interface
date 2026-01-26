@@ -6,17 +6,18 @@ This contains the server for conversational-interface.
 conversational-interface/
 ├── server/
 │   ├── backend/
-│   │   ├── node/
-│   │   │   ├── package.json
-│   │   │   ├── server.js
-│   │   │   └── README.md        
+│   │   │      
 │   │   └── python-server/
 │   │       ├── app.py
 │   │       ├── requirements.txt
 │   │       └── README.md        
 │   └── frontend/
 │       ├── index.html
-│       └── README.md            
+│       ├── README.md  
+│       └── node/
+│            ├── package.json
+│            ├── server.js
+│            └── README.md           
 ├── .gitignore
 └── README.md                    
 
@@ -32,7 +33,7 @@ conversational-interface/
 ### 2. Python Backend README (`/backend/python-server/README.md`)
 This covers Flask logic and the AWS deployment.
 
-### 3. Node Backend README (`/backend/node/README.md`)
+### 3. Node README (`/frontend/node/README.md`)
 This covers the Node logic and running.
 
 ### 3. Frontend README (`/frontend/README.md`)

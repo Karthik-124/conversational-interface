@@ -1,4 +1,4 @@
-server/backend/node/node_modules/
+server/frontend/node/node_modules/
 server/backend/python-server/.venv/
 server/backend/python-server/__pycache__
 lambda_build
