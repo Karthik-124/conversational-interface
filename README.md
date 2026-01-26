@@ -4,6 +4,8 @@ This contains the server for conversational-interface.
 # Directory Structure
 ```text
 conversational-interface/
+├──cloud-setup
+│    └──README.md
 ├── server/
 │   ├── backend/
 │   │   │      
@@ -38,6 +40,9 @@ This covers the Node logic and running.
 
 ### 3. Frontend README (`/frontend/README.md`)
 This covers the frontend.
+
+### 4. Cloud Setup README(`/cloud-setup/README.md`)
+This covers everything for cloud setup.
 
 
 
