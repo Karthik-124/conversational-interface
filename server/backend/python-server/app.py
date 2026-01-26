@@ -1,20 +1,21 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from mangum import Mangum
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route("/chat", methods=["GET", "POST"])
-def chat():
+def chat():  
     if request.method == "GET":
         message = request.args.get("message", "")
-    else:
-        data = request.json
+    else:    
+        data = request.get_json(silent=True) or {}
         message = data.get("message", "")
 
     return jsonify({
-        "reply": f": {message}"
+        "reply": f"{message}"
     })
 
-handler = Mangum(app)
+if __name__ == "__main__":
+    
+    app.run(host="0.0.0.0", port=5000)
