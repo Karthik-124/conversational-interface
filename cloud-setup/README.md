@@ -23,10 +23,11 @@ Each backend runs on a different port.
 
 The following inbound rules are enabled on the EC2 Security Group:
 
-| Port | Service              | Purpose |
-|-----:|----------------------|--------|
-| 5000 | Python Flask Backend | `/chat` API |
-| 8000 | Node.js Backend      | `/chat` API |
+| Port | Service              | Purpose       |
+|-----:|----------------------|-------------  |
+| 5000 | Python Flask Backend | `/chat` API   |
+| 8000 | Node.js Backend      | `/chat` API   |
+| 22   |  SSH                 |Remote Terminal|
 
 Source for both ports: 0.0.0.0/0
 
@@ -92,13 +93,15 @@ sudo yum update -y
 sudo yum install python3 -y
 sudo yum install python3-pip -y
 pip3 install flask
+pip3 install -r requirements.txt
 
 ```
 
 ## Run the Flask app
 
 ```
-cd conversational_ai
+cd backend
+cd python-server
 python3 app.py
 ```
 
@@ -135,7 +138,8 @@ sudo yum install nodejs -y
 
 Install Dependencies:-
 ```
-cd conversational-interface
+cd frontend
+cd node
 npm install
 ```
 
@@ -172,3 +176,6 @@ Express is currently running as the primary server for the frontend UI and Node 
 3. Installed required packages using npm install.
 4. Started the Node server using node server.js.
 
+## Note 
+ If the instance is stopped and started, the Public IP will change.
+ Ensure the Frontend code is updated with the new IPv4 address.
