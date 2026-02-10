@@ -1,6 +1,6 @@
 import flask
 import flask_cors
-import os
+import markdown
 
 app = flask.Flask(__name__)
 flask_cors.CORS(app)
@@ -13,12 +13,12 @@ def chat():
         data = flask.request.get_json(silent=True) or {}
         message = data.get("message", "")
 
+    rendered_html = markdown.markdown(message, extensions=['tables', 'fenced_code'])
+
     return flask.jsonify({
-        "reply": f"{message}"
+        "reply": rendered_html,  
+        "raw_md": message        #original md response
     })
 
 if __name__ == "__main__":
-   
-    port = int(os.environ.get("PORT", 10000)) 
-    app.run(host="0.0.0.0", port=port)
-
+    app.run(host="0.0.0.0", port=5000)
