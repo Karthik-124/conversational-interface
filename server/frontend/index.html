@@ -16,7 +16,6 @@
         display: flex;
         flex-direction: column;
         background-color: white;
-        
       }
 
       h3 {
@@ -33,9 +32,8 @@
         overflow-y: auto;
         display: flex;
         flex-direction: column;
-        
       }
-      .chat-messages-container::-webkit-scrollbar { display: none; } 
+      .chat-messages-container::-webkit-scrollbar { display: none; }
 
       .chat-message-user {
         display: flex;
@@ -59,7 +57,7 @@
       }
 
       .chat-message-user .chat-message-text {
-        background-color: #f2f4f1; 
+        background-color: #f2f4f1;
         color: #000;
         border-bottom-right-radius: 2px;
       }
@@ -100,19 +98,16 @@
         align-self: flex-end;
         height: 40px;
       }
-      
+
       .chat-message-text * {
         display: inline;
         margin: 0;
       }
 
-
       .chat-message-text p {
-         display: inline-block;
-         width: auto;
-       }
-
-      
+        display: inline-block;
+        width: auto;
+      }
     </style>
   </head>
   <body>
@@ -121,9 +116,10 @@
     <script src="https://unpkg.com/supersimpledev/react.js"></script>
     <script src="https://unpkg.com/supersimpledev/react-dom.js"></script>
     <script src="https://unpkg.com/supersimpledev/babel.js"></script>
-    
+
     <script type="text/babel">
-      const Backend_url= "https://conversational-interface.onrender.com/chat";
+      const Backend_url = "http://127.0.0.1:5000/chat";
+
       function ChatInput({ chatMessages, setChatMessages }) {
         const [inputText, setInputText] = React.useState('');
 
@@ -141,10 +137,20 @@
           setInputText('');
 
           try {
+            let payload;
+
+            try {
+              // If user typed valid JSON, send it as-is
+              payload = JSON.parse(inputText);
+            } catch {
+              // Not JSON → wrap as plain text message
+              payload = { message: inputText, type: "text" };
+            }
+
             const response = await fetch(Backend_url, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message: inputText })
+              body: JSON.stringify(payload)
             });
 
             const data = await response.json();
@@ -153,61 +159,64 @@
               ...updatedMessages,
               {
                 message: data.reply,
+                type: data.type,
                 sender: 'robot',
                 id: crypto.randomUUID()
               }
             ]);
           } catch (error) {
             console.error("Error connecting to backend:", error);
-            
           }
         }
 
         return (
           <div className="chat-input-container">
-      <textarea 
-        className="chat-input"
-        placeholder="Send a Message 🥸" 
-        rows="1"
-        style={{ height: 'auto', minHeight: '40px', resize: 'none' }}
-        onChange={(e) => {
-          setInputText(e.target.value);
-          
-          e.target.style.height = 'auto'; //auto grow height
-          e.target.style.height = e.target.scrollHeight + 'px';
-        }}
-        value={inputText}
-        onKeyDown={(e) => {
-           // send on enter
-          if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-            e.target.style.height = 'auto';
-          }
-        }}
-      />
-      <button className="send-button" onClick={sendMessage}>Send</button>
-    </div>
+            <textarea
+              className="chat-input"
+              placeholder="Send a Message"
+              rows="4"
+              style={{ height: 'auto', minHeight: '40px', resize: 'none' }}
+              onChange={(e) => {
+                setInputText(e.target.value);
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }}
+              value={inputText}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                  e.target.style.height = 'auto';
+                }
+              }}
+            />
+            <button className="send-button" onClick={sendMessage}>Send</button>
+          </div>
         );
       }
 
-      function ChatMessage({ message, sender }) {
+      function ChatMessage({ message, sender, type }) {
         const wrapperClass = sender === 'user' ? 'chat-message-user' : 'chat-message-robot';
+
+        const renderContent = () => {
+          if (type !== 'text') {
+            return <div dangerouslySetInnerHTML={{ __html: message }} />;
+          }
+          return <span>{message}</span>;
+        };
+
         return (
           <div className={wrapperClass}>
-            <div className="chat-message-text" dangerouslySetInnerHTML={{ __html: message }} />
-              
-            
+            <div className="chat-message-text">{renderContent()}</div>
           </div>
         );
       }
 
       function ChatMessages({ chatMessages }) {
-       
         return (
           <div className="chat-messages-container">
             {chatMessages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg.message} sender={msg.sender} />
+              <ChatMessage key={msg.id} message={msg.message} sender={msg.sender} type={msg.type} />
             ))}
           </div>
         );
@@ -215,12 +224,12 @@
 
       function App() {
         const [chatMessages, setChatMessages] = React.useState([
-          { message: "Server is online.", sender: "robot", id: "init" }
+          { message: "Server is online.", sender: "robot", type: "text", id: "init" }
         ]);
 
         return (
           <div className="app-container">
-            <h3> Chat</h3>
+            <h3>Chat</h3>
             <ChatMessages chatMessages={chatMessages} />
             <ChatInput chatMessages={chatMessages} setChatMessages={setChatMessages} />
           </div>
