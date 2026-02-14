@@ -109,6 +109,34 @@
         display: inline-block;
         width: auto;
       }
+
+      /* Radio button styles */
+      .choice-container {
+        display: block;
+        margin-top: 8px;
+      }
+
+      .choice-question {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .choice-option {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+        cursor: pointer;
+      }
+
+      .choice-option input[type="radio"] {
+        margin-right: 8px;
+        cursor: pointer;
+      }
+
+      .choice-option label {
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -141,10 +169,8 @@
             let payload;
 
             try {
-              // If user typed valid JSON, send it as-is
               payload = JSON.parse(inputText);
             } catch {
-              // Not JSON → wrap as plain text message
               payload = { message: inputText, type: "text" };
             }
 
@@ -198,9 +224,36 @@
 
       function ChatMessage({ message, sender, type }) {
         const wrapperClass = sender === 'user' ? 'chat-message-user' : 'chat-message-robot';
+        const [selectedOption, setSelectedOption] = React.useState('');
 
         const renderContent = () => {
-          if (type !== 'text') {
+          if (type === 'choice') {
+            try {
+              const choiceData = JSON.parse(message);
+              const groupName = `choice-${Math.random()}`;
+              
+              return (
+                <div className="choice-container">
+                  <span className="choice-question">{choiceData.question}</span>
+                  {choiceData.options.map((option, idx) => (
+                    <div key={idx} className="choice-option">
+                      <input
+                        type="radio"
+                        id={`${groupName}-${idx}`}
+                        name={groupName}
+                        value={option}
+                        checked={selectedOption === option}
+                        onChange={(e) => setSelectedOption(e.target.value)}
+                      />
+                      <label htmlFor={`${groupName}-${idx}`}>{option}</label>
+                    </div>
+                  ))}
+                </div>
+              );
+            } catch {
+              return <span>{message}</span>;
+            }
+          } else if (type !== 'text') {
             return <div dangerouslySetInnerHTML={{ __html: message }} />;
           }
           return <span>{message}</span>;
