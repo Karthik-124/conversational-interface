@@ -1,6 +1,7 @@
 import flask
 import flask_cors
 import markdown
+import json
 
 app = flask.Flask(__name__)
 flask_cors.CORS(app)
@@ -14,11 +15,9 @@ def chat():
         data = flask.request.get_json(silent=True)
 
         if data:
-            # User typed valid JSON
             msg_type = data.get("type", "text")
             content = data.get("message", "")
         else:
-            # Not JSON → treat entire body as text
             content = flask.request.data.decode("utf-8")
             msg_type = "text"
 
@@ -27,6 +26,23 @@ def chat():
 
     if msg_type == "md":
         reply = markdown.markdown(content, extensions=["tables", "fenced_code"])
+    elif msg_type == "choice":
+        
+        if isinstance(content, str):
+            try:
+                choice_data = json.loads(content)
+            except:
+                reply = content
+                msg_type = "text"
+                choice_data = None
+        else:
+            choice_data = content
+        
+        if choice_data:
+            reply = json.dumps({
+                "question": choice_data.get("question", "Select an option:"),
+                "options": choice_data.get("options", [])
+            })
     else:
         msg_type = "text"
         reply = content
