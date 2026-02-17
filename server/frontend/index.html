@@ -380,11 +380,12 @@
         };
 
         return (
-          <div className={wrapperClass}>
-            <div className="chat-message-text">{renderContent()}</div>
-          </div>
-        );
-      }
+  <div className={wrapperClass}>
+    <div className={`chat-message-text ${type === 'poi' ? 'map-message' : ''}`}>
+      {renderContent()}
+    </div>
+  </div>
+);
 
       function ChatMessages({ chatMessages }) {
         return (
