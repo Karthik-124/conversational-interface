@@ -3,6 +3,7 @@
   <head>
     <title>Conversational Interface</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
       body {
         font-family: Arial;
@@ -100,7 +101,10 @@
         height: 40px;
       }
 
-      .chat-message-text * {
+      .chat-message-text span,
+      .chat-message-text strong,
+      .chat-message-text em,
+      .chat-message-text code {
         display: inline;
         margin: 0;
       }
@@ -110,10 +114,43 @@
         width: auto;
       }
 
-      /* Radio button styles */
+      .map-container {
+        display: block !important;
+        width: 500px !important;
+        height: 400px !important;
+        border-radius: 8px;
+        overflow: hidden;
+        margin: 10px 0;
+        position: relative;
+        border: 1px solid #ddd;
+      }
+
+      @media (max-width: 600px) {
+        .map-container {
+          width: 100% !important;
+          max-width: 320px !important;
+          height: 250px !important;
+        }
+
+        .chat-message-robot .chat-message-text {
+          max-width: 90%;
+        }
+      }
+
+      .leaflet-tooltip.location-label {
+        background-color: rgba(255, 255, 255, 0.9);
+        border: 1px solid #ccc;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      }
+
+      /* Choice / Radio button styles */
       .choice-container {
         display: block;
-        margin-top: 8px;
+        margin-top: 4px;
       }
 
       .choice-question {
@@ -142,15 +179,17 @@
   <body>
     <div class="js-container"></div>
 
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/supersimpledev/react.js"></script>
     <script src="https://unpkg.com/supersimpledev/react-dom.js"></script>
     <script src="https://unpkg.com/supersimpledev/babel.js"></script>
 
     <script type="text/babel">
-      const Backend_url = "https://conversational-interface.onrender.com/chat";
+      const Backend_url = "http://127.0.0.1:5000/chat";
 
       function ChatInput({ chatMessages, setChatMessages }) {
         const [inputText, setInputText] = React.useState('');
+        const textareaRef = React.useRef(null);
 
         async function sendMessage() {
           if (!inputText.trim()) return;
@@ -165,9 +204,13 @@
           setChatMessages(updatedMessages);
           setInputText('');
 
+          if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = '40px';
+          }
+
           try {
             let payload;
-
             try {
               payload = JSON.parse(inputText);
             } catch {
@@ -199,6 +242,7 @@
         return (
           <div className="chat-input-container">
             <textarea
+              ref={textareaRef}
               className="chat-input"
               placeholder="Send a Message"
               rows="4"
@@ -213,7 +257,6 @@
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
                   sendMessage();
-                  e.target.style.height = 'auto';
                 }
               }}
             />
@@ -224,17 +267,82 @@
 
       function ChatMessage({ message, sender, type }) {
         const wrapperClass = sender === 'user' ? 'chat-message-user' : 'chat-message-robot';
+        const mapRef = React.useRef(null);
+        const mapInstanceRef = React.useRef(null);
         const [selectedOption, setSelectedOption] = React.useState('');
 
+        React.useEffect(() => {
+          if (type === 'poi' && mapRef.current && !mapInstanceRef.current) {
+            try {
+              const poiData = typeof message === 'string' ? JSON.parse(message) : message;
+              const locations = poiData.locations || [];
+              const zoom = poiData.zoom || 13;
+
+              if (!Array.isArray(locations) || locations.length === 0) {
+                console.error("No valid locations");
+                return;
+              }
+
+              const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
+              const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
+
+              const map = L.map(mapRef.current, {
+                scrollWheelZoom: false,
+                dragging: true,
+                tap: true
+              }).setView([avgLat, avgLng], zoom);
+
+              L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19
+              }).addTo(map);
+
+              locations.forEach((location) => {
+                const popupContent = `
+                  <div>
+                    <strong>${location.label}</strong><br>
+                    ${location.loctype ? `<em>${location.loctype}</em><br>` : ''}
+                    ${location.image ? `<img src="${location.image}" style="width:100%; max-width:200px; margin-top:5px;" onerror="this.style.display='none'">` : ''}
+                  </div>
+                `;
+
+                const marker = L.marker([location.lat, location.lng]).addTo(map);
+                marker.bindPopup(popupContent);
+                marker.bindTooltip(location.label, {
+                  permanent: true,
+                  direction: 'top',
+                  className: 'location-label'
+                });
+              });
+
+              setTimeout(() => map.invalidateSize(), 100);
+              setTimeout(() => map.invalidateSize(), 300);
+
+              mapInstanceRef.current = map;
+            } catch (error) {
+              console.error("Map error:", error);
+            }
+          }
+
+          return () => {
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.remove();
+              mapInstanceRef.current = null;
+            }
+          };
+        }, [type, message]);
+
         const renderContent = () => {
+          if (type === 'poi') {
+            return <div ref={mapRef} className="map-container"></div>;
+          }
+
           if (type === 'choice') {
             try {
-              const choiceData = JSON.parse(message);
-              const groupName = `choice-${Math.random()}`;
-              
+              const choiceData = typeof message === 'string' ? JSON.parse(message) : message;
+              const groupName = `choice-${Math.random().toString(36).substr(2, 9)}`;
               return (
                 <div className="choice-container">
-                  <span className="choice-question">{choiceData.question}</span>
+                  <span className="choice-question">{choiceData.text}</span>
                   {choiceData.options.map((option, idx) => (
                     <div key={idx} className="choice-option">
                       <input
@@ -253,9 +361,12 @@
             } catch {
               return <span>{message}</span>;
             }
-          } else if (type !== 'text') {
+          }
+
+          if (type !== 'text') {
             return <div dangerouslySetInnerHTML={{ __html: message }} />;
           }
+
           return <span>{message}</span>;
         };
 
@@ -270,7 +381,12 @@
         return (
           <div className="chat-messages-container">
             {chatMessages.map((msg) => (
-              <ChatMessage key={msg.id} message={msg.message} sender={msg.sender} type={msg.type} />
+              <ChatMessage
+                key={msg.id}
+                message={msg.message}
+                sender={msg.sender}
+                type={msg.type}
+              />
             ))}
           </div>
         );
